@@ -1,0 +1,14 @@
+{
+  "name": "babura-house-connect",
+  "version": "1.0.0",
+  "description": "Babura House Renting System Front-end Build Pipeline",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss -i assets/css/input.css -o public/css/style.css --minify",
+    "watch": "tailwindcss -i assets/css/input.css -o public/css/style.css --watch"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "tailwindcss": "^4.0.0"
+  }
+}
