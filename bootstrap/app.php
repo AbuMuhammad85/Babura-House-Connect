@@ -23,8 +23,13 @@ if (file_exists($composerAutoload)) {
 }
 
 // 1. Load Environment Variables
-$dotenv = new \App\Core\Dotenv(__DIR__ . '/../.env');
-$dotenv->load();
+if (class_exists('Dotenv\Dotenv')) {
+    $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+    $dotenv->safeLoad();
+} else {
+    $dotenv = new \App\Core\Dotenv(__DIR__ . '/../.env');
+    $dotenv->load();
+}
 
 // 2. Set Config path
 \App\Core\Config::setPath(__DIR__ . '/../config');
