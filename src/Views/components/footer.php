@@ -27,6 +27,8 @@
                     <li><a href="<?= url('/browse') ?>" class="hover:text-white transition-colors">Browse Houses</a></li>
                     <li><a href="<?= url('/about') ?>" class="hover:text-white transition-colors">About Us</a></li>
                     <li><a href="<?= url('/contact') ?>" class="hover:text-white transition-colors">Contact</a></li>
+                    <li><a href="<?= url('/privacy') ?>" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="<?= url('/terms') ?>" class="hover:text-white transition-colors">Terms &amp; Conditions</a></li>
                 </ul>
             </div>
 

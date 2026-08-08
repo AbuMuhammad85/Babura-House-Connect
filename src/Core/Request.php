@@ -6,13 +6,27 @@ class Request
 {
     public function getPath(): string
     {
-        $path = $_GET['url'] ?? '/';
-        $path = '/' . ltrim($path, '/');
-        $position = strpos($path, '?');
-        if ($position !== false) {
-            $path = substr($path, 0, $position);
+        if (!empty($_GET['url'])) {
+            return '/' . trim($_GET['url'], '/');
         }
-        return $path;
+
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        
+        $position = strpos($uri, '?');
+        if ($position !== false) {
+            $uri = substr($uri, 0, $position);
+        }
+
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePath = dirname($scriptName);
+        $basePath = str_replace('\\', '/', $basePath);
+
+        if ($basePath !== '/' && strpos($uri, $basePath) === 0) {
+            $uri = substr($uri, strlen($basePath));
+        }
+
+        $path = '/' . trim($uri, '/');
+        return $path === '' ? '/' : $path;
     }
 
     public function getMethod(): string

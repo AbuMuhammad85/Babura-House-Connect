@@ -65,7 +65,7 @@
                 <!-- Terms and Conditions -->
                 <div class="flex items-start">
                     <input type="checkbox" id="terms" required class="w-4 h-4 mt-0.5 rounded text-primary focus:ring-primary border-slate-200 shrink-0">
-                    <label for="terms" class="ml-2 block text-xs text-text-muted leading-relaxed">I agree to Babura House Connect's <a href="#" class="text-primary hover:underline">Terms of Service</a> &amp; <a href="#" class="text-primary hover:underline">Privacy Policy</a></label>
+                    <label for="terms" class="ml-2 block text-xs text-text-muted leading-relaxed">I agree to Babura House Connect's <a href="<?= url('/terms') ?>" class="text-primary hover:underline">Terms &amp; Conditions</a> &amp; <a href="<?= url('/privacy') ?>" class="text-primary hover:underline">Privacy Policy</a></label>
                 </div>
 
                 <!-- Submit -->

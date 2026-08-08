@@ -30,10 +30,28 @@ if (!function_exists('component')) {
 if (!function_exists('isActive')) {
     function isActive(string $path, string $activeClass = 'active'): string
     {
-        $currentPath = $_GET['url'] ?? '/';
-        $currentPath = '/' . ltrim($currentPath, '/');
+        if (!empty($_GET['url'])) {
+            $currentPath = '/' . trim($_GET['url'], '/');
+        } else {
+            $uri = $_SERVER['REQUEST_URI'] ?? '/';
+            $position = strpos($uri, '?');
+            if ($position !== false) {
+                $uri = substr($uri, 0, $position);
+            }
+            
+            $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+            $basePath = dirname($scriptName);
+            $basePath = str_replace('\\', '/', $basePath);
+            
+            if ($basePath !== '/' && strpos($uri, $basePath) === 0) {
+                $uri = substr($uri, strlen($basePath));
+            }
+            
+            $currentPath = '/' . trim($uri, '/');
+        }
         
-        // Exact match or matches start for deep dashboard routes
+        $currentPath = $currentPath === '' ? '/' : $currentPath;
+        
         if ($path === '/' && $currentPath === '/') {
             return $activeClass;
         }

@@ -26,6 +26,8 @@ $router->get('/house/{id}', [PublicController::class, 'details'])->name('house.d
 $router->get('/landlord/{id}', [PublicController::class, 'landlordProfile'])->name('landlord.public_profile');
 $router->get('/about', [PublicController::class, 'about'])->name('about');
 $router->get('/contact', [PublicController::class, 'contact'])->name('contact');
+$router->get('/privacy', [PublicController::class, 'privacy'])->name('privacy');
+$router->get('/terms', [PublicController::class, 'terms'])->name('terms');
 
 // --- GUEST-ONLY AUTHENTICATION ROUTES ---
 $router->group(['middleware' => 'guest'], function(Router $r) {

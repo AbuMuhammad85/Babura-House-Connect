@@ -292,4 +292,20 @@ class PublicController extends BaseController
             'title' => 'Contact Us - Babura House Connect'
         ]);
     }
+
+    public function privacy(Request $request, Response $response)
+    {
+        $this->setLayout('main');
+        return $this->render('public/privacy', [
+            'title' => 'Privacy Policy - Babura House Connect'
+        ]);
+    }
+
+    public function terms(Request $request, Response $response)
+    {
+        $this->setLayout('main');
+        return $this->render('public/terms', [
+            'title' => 'Terms & Conditions - Babura House Connect'
+        ]);
+    }
 }
