@@ -10,7 +10,7 @@ class Route
     public array $middlewares = [];
     public ?string $name = null;
     protected string $regex;
-    protected array $paramNames = [];
+    public array $paramNames = [];
 
     public function __construct(string $method, string $path, $callback)
     {

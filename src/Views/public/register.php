@@ -12,7 +12,15 @@
                 <p class="text-xs text-text-muted">Register to search or lease verified houses in Babura.</p>
             </div>
 
+            <?php if (\App\Helpers\Flash::has('error')): ?>
+                <?php component('alerts', ['type' => 'error', 'message' => \App\Helpers\Flash::get('error')]); ?>
+            <?php endif; ?>
+            <?php if (\App\Helpers\Flash::has('success')): ?>
+                <?php component('alerts', ['type' => 'success', 'message' => \App\Helpers\Flash::get('success')]); ?>
+            <?php endif; ?>
+
             <form action="<?= url('/register') ?>" method="POST" class="space-y-4">
+                <?= \App\Helpers\CSRF::field() ?>
                 
                 <!-- Full Name -->
                 <div>
@@ -59,6 +67,15 @@
                     <div class="relative">
                         <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-400 text-xs"></i>
                         <input type="password" name="password" required placeholder="••••••••" class="w-full pl-9 pr-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                    </div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Confirm Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                        <input type="password" name="confirm_password" required placeholder="••••••••" class="w-full pl-9 pr-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
                     </div>
                 </div>
 

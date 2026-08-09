@@ -1,3 +1,7 @@
+<?php
+use App\Helpers\Flash;
+?>
+
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -9,6 +13,13 @@
             <span>Add New Property</span>
         </a>
     </div>
+
+    <?php if (Flash::has('error')): ?>
+        <?php component('alerts', ['type' => 'error', 'message' => Flash::get('error')]); ?>
+    <?php endif; ?>
+    <?php if (Flash::has('success')): ?>
+        <?php component('alerts', ['type' => 'success', 'message' => Flash::get('success')]); ?>
+    <?php endif; ?>
 
     <!-- Listings Table Container -->
     <?php if (empty($listings)): ?>
@@ -28,7 +39,7 @@
                         <th class="px-6 py-3">Price</th>
                         <th class="px-6 py-3">Views</th>
                         <th class="px-6 py-3">Status</th>
-                        <th class="px-6 py-3">Verification</th>
+                        <th class="px-6 py-3">Availability</th>
                         <th class="px-6 py-3 text-right">Actions</th>
                     </tr>
                 </thead>
@@ -37,37 +48,50 @@
                         <tr>
                             <!-- Image + Title -->
                             <td class="px-6 py-4 flex items-center space-x-3">
-                                <span class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
-                                    <i class="fa-regular fa-image"></i>
-                                </span>
+                                <?php if (!empty($listing['thumbnail'])): ?>
+                                    <img src="<?= url($listing['thumbnail']) ?>" class="w-10 h-10 rounded-lg object-cover shrink-0">
+                                <?php else: ?>
+                                    <span class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                                        <i class="fa-regular fa-image"></i>
+                                    </span>
+                                <?php endif; ?>
                                 <div>
-                                    <span class="font-bold text-slate-800 line-clamp-1"><?= $listing['title'] ?></span>
-                                    <span class="text-[10px] text-text-muted mt-0.5 block flex items-center"><i class="fa-solid fa-location-dot mr-1"></i> <?= $listing['location'] ?></span>
+                                    <span class="font-bold text-slate-800 line-clamp-1"><?= htmlspecialchars($listing['title']) ?></span>
+                                    <span class="text-[10px] text-text-muted mt-0.5 block flex items-center"><i class="fa-solid fa-location-dot mr-1"></i> <?= htmlspecialchars($listing['area_name']) ?></span>
                                 </div>
                             </td>
                             <!-- Price -->
-                            <td class="px-6 py-4 font-bold text-slate-800">
-                                <?= formatNaira($listing['price']) ?>
+                            <td class="px-6 py-4 font-bold text-slate-850">
+                                <?= formatNaira($listing['rent_amount']) ?> <span class="text-[10px] text-slate-400 font-normal">/ <?= $listing['rent_period'] ?></span>
                             </td>
                             <!-- Views -->
                             <td class="px-6 py-4 text-text-muted">
-                                <?= $listing['views'] ?> views
+                                <?= $listing['views_count'] ?> views
                             </td>
                             <!-- Status -->
                             <td class="px-6 py-4">
                                 <?php 
                                 $statusType = 'warning';
-                                if ($listing['status'] === 'Active') $statusType = 'success';
+                                $statusLabel = $listing['status'];
+                                if ($listing['status'] === 'published') {
+                                    $statusType = 'success';
+                                    $statusLabel = 'Approved';
+                                } elseif ($listing['status'] === 'pending_approval') {
+                                    $statusType = 'warning';
+                                    $statusLabel = 'Pending Approval';
+                                } elseif ($listing['status'] === 'rejected') {
+                                    $statusType = 'danger';
+                                    $statusLabel = 'Rejected';
+                                } elseif ($listing['status'] === 'archived') {
+                                    $statusType = 'neutral';
+                                    $statusLabel = 'Deactivated';
+                                }
                                 ?>
-                                <?php component('badges', ['type' => $statusType, 'text' => $listing['status']]); ?>
+                                <?php component('badges', ['type' => $statusType, 'text' => $statusLabel]); ?>
                             </td>
-                            <!-- Verification -->
-                            <td class="px-6 py-4">
-                                <?php if ($listing['verified']): ?>
-                                    <span class="text-green-700 font-semibold flex items-center"><i class="fa-solid fa-circle-check mr-1 text-[10px]"></i> Verified</span>
-                                <?php else: ?>
-                                    <span class="text-slate-400 flex items-center"><i class="fa-solid fa-circle-minus mr-1 text-[10px]"></i> Pending</span>
-                                <?php endif; ?>
+                            <!-- Availability -->
+                            <td class="px-6 py-4 font-semibold">
+                                <?= htmlspecialchars(ucfirst($listing['availability'])) ?>
                             </td>
                             <!-- Actions -->
                             <td class="px-6 py-4 text-right">
@@ -75,9 +99,16 @@
                                     <a href="<?= url('/landlord/listings/edit/' . $listing['id']) ?>" class="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-primary hover:border-primary/50 transition-colors flex items-center justify-center" title="Edit Listing">
                                         <i class="fa-regular fa-pen-to-square text-xs"></i>
                                     </a>
-                                    <button class="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-red-600 hover:border-red-300 transition-colors flex items-center justify-center" title="Delete Listing">
-                                        <i class="fa-regular fa-trash-can text-xs"></i>
-                                    </button>
+                                    
+                                    <?php if ($listing['status'] !== 'archived'): ?>
+                                        <form action="<?= url('/landlord/listings/deactivate') ?>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to deactivate and archive this listing?');">
+                                            <?= \App\Helpers\CSRF::field() ?>
+                                            <input type="hidden" name="id" value="<?= $listing['id'] ?>">
+                                            <button type="submit" class="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-red-650 hover:border-red-300 transition-colors flex items-center justify-center" title="Deactivate Listing">
+                                                <i class="fa-regular fa-trash-can text-xs"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

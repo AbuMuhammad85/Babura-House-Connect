@@ -19,9 +19,11 @@ if ($role === 'tenant') {
         ['label' => 'Verification', 'url' => '/landlord/verification', 'icon' => 'fa-shield-halved'],
         ['label' => 'Add House', 'url' => '/landlord/add-house', 'icon' => 'fa-circle-plus'],
         ['label' => 'Manage Listings', 'url' => '/landlord/listings', 'icon' => 'fa-house-user'],
+        ['label' => 'Rental Inquiries', 'url' => '/landlord/inquiries', 'icon' => 'fa-message'],
         ['label' => 'Analytics', 'url' => '/landlord/analytics', 'icon' => 'fa-chart-pie'],
         ['label' => 'Subscription', 'url' => '/landlord/subscription', 'icon' => 'fa-credit-card'],
         ['label' => 'Profile', 'url' => '/landlord/profile', 'icon' => 'fa-user'],
+        ['label' => 'Notifications', 'url' => '/landlord/notifications', 'icon' => 'fa-bell'],
         ['label' => 'Settings', 'url' => '/landlord/settings', 'icon' => 'fa-gear'],
     ];
     $portalName = "Landlord Portal";
@@ -35,6 +37,9 @@ if ($role === 'tenant') {
         ['label' => 'Reports', 'url' => '/admin/reports', 'icon' => 'fa-file-lines'],
         ['label' => 'Subscriptions', 'url' => '/admin/subscriptions', 'icon' => 'fa-wallet'],
         ['label' => 'Analytics', 'url' => '/admin/analytics', 'icon' => 'fa-chart-line'],
+        ['label' => 'Area Management', 'url' => '/admin/areas', 'icon' => 'fa-map-location-dot'],
+        ['label' => 'Activity Logs', 'url' => '/admin/activity-logs', 'icon' => 'fa-list-check'],
+        ['label' => 'Notifications', 'url' => '/admin/notifications', 'icon' => 'fa-bell'],
         ['label' => 'Settings', 'url' => '/admin/settings', 'icon' => 'fa-gears'],
     ];
     $portalName = "Admin Control";

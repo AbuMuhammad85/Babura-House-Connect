@@ -4,7 +4,7 @@
     </div>
     <h1 class="text-3xl font-extrabold text-slate-800">403 - Access Denied</h1>
     <p class="text-xs text-text-muted mt-2 max-w-sm leading-relaxed">
-        You do not have the permissions required to access this resource or dashboard portal.
+        <?= htmlspecialchars($message ?? 'You do not have the permissions required to access this resource or dashboard portal.') ?>
     </p>
     <a href="<?= url('/') ?>" class="mt-6 px-5 py-2.5 bg-primary text-white hover:bg-primary/95 text-xs font-semibold rounded-lg shadow-sm hover:shadow-lg transition-all">
         Go Back Home

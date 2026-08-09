@@ -22,12 +22,26 @@ $read = $read ?? false;
         </div>
         
         <div class="flex items-center space-x-2 shrink-0">
-            <?php if (!$read): ?>
-                <button class="text-xs text-primary hover:underline font-semibold">Mark Read</button>
+            <?php 
+            $role = \App\Helpers\Auth::user('role') ?? 'tenant';
+            $basePath = '/' . $role . '/notifications';
+            ?>
+            <?php if (!$read && isset($id)): ?>
+                <form action="<?= url($basePath . '/mark-read') ?>" method="POST" class="inline">
+                    <?= \App\Helpers\CSRF::field() ?>
+                    <input type="hidden" name="id" value="<?= $id ?>">
+                    <button type="submit" class="text-xs text-primary hover:underline font-semibold">Mark Read</button>
+                </form>
             <?php endif; ?>
-            <button class="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors" title="Delete notification">
-                <i class="fa-regular fa-trash-can text-xs"></i>
-            </button>
+            <?php if (isset($id)): ?>
+                <form action="<?= url($basePath . '/delete') ?>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this notification?');">
+                    <?= \App\Helpers\CSRF::field() ?>
+                    <input type="hidden" name="id" value="<?= $id ?>">
+                    <button type="submit" class="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors" title="Delete notification">
+                        <i class="fa-regular fa-trash-can text-xs"></i>
+                    </button>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 </div>

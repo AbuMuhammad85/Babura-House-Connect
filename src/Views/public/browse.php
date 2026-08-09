@@ -27,13 +27,11 @@
                 <form action="<?= url('/browse') ?>" method="GET" class="space-y-6">
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-2">Location</label>
-                        <select name="location" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
-                            <option value="">All Locations</option>
-                            <option value="Kofar Gabas">Kofar Gabas</option>
-                            <option value="Sabo Gari">Sabo Gari</option>
-                            <option value="GRA">GRA</option>
-                            <option value="Tashar Dan-Baba">Tashar Dan-Baba</option>
-                            <option value="Kofar Arewa">Kofar Arewa</option>
+                        <select name="area_id" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                            <option value="">All Areas</option>
+                            <?php foreach ($areas as $area): ?>
+                                <option value="<?= $area['id'] ?>" <?= ($filters['area_id'] ?? '') == $area['id'] ? 'selected' : '' ?>><?= htmlspecialchars($area['name']) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
@@ -41,28 +39,50 @@
                         <label class="block text-xs font-semibold text-slate-700 mb-2">House Type</label>
                         <select name="type" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
                             <option value="">Any Type</option>
-                            <option value="Flat">Flat</option>
-                            <option value="Bungalow">Bungalow</option>
-                            <option value="Self-Contain">Self-Contain</option>
-                            <option value="Duplex">Duplex</option>
+                            <?php foreach (['single_room' => 'Single Room', 'room_and_parlor' => 'Room & Parlor', 'two_bedroom' => 'Two Bedroom', 'three_bedroom' => 'Three Bedroom', 'four_bedroom' => 'Four Bedroom', 'self_contain' => 'Self-Contain', 'flat' => 'Flat', 'duplex' => 'Duplex', 'compound_house' => 'Compound House', 'shop' => 'Shop', 'other' => 'Other'] as $val => $label): ?>
+                                <option value="<?= $val ?>" <?= ($filters['type'] ?? '') === $val ? 'selected' : '' ?>><?= $label ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-2">Price Range (₦)</label>
                         <div class="space-y-2">
-                            <input type="number" name="min_price" placeholder="Min" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800">
-                            <input type="number" name="max_price" placeholder="Max" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800">
+                            <input type="number" name="min_price" value="<?= htmlspecialchars($filters['min_price'] ?? '') ?>" placeholder="Min" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                            <input type="number" name="max_price" value="<?= htmlspecialchars($filters['max_price'] ?? '') ?>" placeholder="Max" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-2">Bedrooms</label>
-                        <div class="grid grid-cols-4 gap-2">
-                            <?php foreach ([1, 2, 3, '4+'] as $b): ?>
-                                <button type="button" class="py-2 text-center text-xs font-semibold border border-slate-200 rounded-lg hover:border-primary hover:text-primary transition-all bg-white"><?= $b ?></button>
-                            <?php endforeach; ?>
-                        </div>
+                        <select name="bedrooms" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                            <option value="">Any Bedrooms</option>
+                            <option value="1" <?= ($filters['bedrooms'] ?? '') == '1' ? 'selected' : '' ?>>1 Bedroom</option>
+                            <option value="2" <?= ($filters['bedrooms'] ?? '') == '2' ? 'selected' : '' ?>>2 Bedrooms</option>
+                            <option value="3" <?= ($filters['bedrooms'] ?? '') == '3' ? 'selected' : '' ?>>3 Bedrooms</option>
+                            <option value="4" <?= ($filters['bedrooms'] ?? '') == '4' ? 'selected' : '' ?>>4 Bedrooms</option>
+                            <option value="4+" <?= ($filters['bedrooms'] ?? '') == '4+' ? 'selected' : '' ?>>4+ Bedrooms</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Bathrooms</label>
+                        <select name="bathrooms" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                            <option value="">Any Bathrooms</option>
+                            <option value="1" <?= ($filters['bathrooms'] ?? '') == '1' ? 'selected' : '' ?>>1 Bathroom</option>
+                            <option value="2" <?= ($filters['bathrooms'] ?? '') == '2' ? 'selected' : '' ?>>2 Bathrooms</option>
+                            <option value="3" <?= ($filters['bathrooms'] ?? '') == '3' ? 'selected' : '' ?>>3 Bathrooms</option>
+                            <option value="4" <?= ($filters['bathrooms'] ?? '') == '4' ? 'selected' : '' ?>>4+ Bathrooms</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Rent Period</label>
+                        <select name="rent_period" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                            <option value="">Any Period</option>
+                            <option value="year" <?= ($filters['rent_period'] ?? '') === 'year' ? 'selected' : '' ?>>per Year</option>
+                            <option value="month" <?= ($filters['rent_period'] ?? '') === 'month' ? 'selected' : '' ?>>per Month</option>
+                        </select>
                     </div>
 
                     <button type="submit" class="w-full bg-primary hover:bg-primary/95 text-white font-semibold py-2.5 px-4 rounded-lg text-xs transition-all shadow-md shadow-primary/20">
@@ -85,19 +105,20 @@
                 <form action="<?= url('/browse') ?>" method="GET" class="space-y-6">
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-2">Location</label>
-                        <select name="location" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
-                            <option value="">All Locations</option>
-                            <option value="Kofar Gabas">Kofar Gabas</option>
-                            <option value="Sabo Gari">Sabo Gari</option>
-                            <option value="GRA">GRA</option>
+                        <select name="area_id" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                            <option value="">All Areas</option>
+                            <?php foreach ($areas as $area): ?>
+                                <option value="<?= $area['id'] ?>" <?= ($filters['area_id'] ?? '') == $area['id'] ? 'selected' : '' ?>><?= htmlspecialchars($area['name']) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-2">House Type</label>
                         <select name="type" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
                             <option value="">Any Type</option>
-                            <option value="Flat">Flat</option>
-                            <option value="Bungalow">Bungalow</option>
+                            <?php foreach (['single_room' => 'Single Room', 'room_and_parlor' => 'Room & Parlor', 'two_bedroom' => 'Two Bedroom', 'three_bedroom' => 'Three Bedroom', 'four_bedroom' => 'Four Bedroom', 'self_contain' => 'Self-Contain', 'flat' => 'Flat', 'duplex' => 'Duplex', 'compound_house' => 'Compound House', 'shop' => 'Shop', 'other' => 'Other'] as $val => $label): ?>
+                                <option value="<?= $val ?>" <?= ($filters['type'] ?? '') === $val ? 'selected' : '' ?>><?= $label ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <button type="submit" class="w-full bg-primary text-white py-2.5 rounded-lg text-xs font-semibold">Apply Filters</button>

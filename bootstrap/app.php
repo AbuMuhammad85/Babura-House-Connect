@@ -70,11 +70,24 @@ if (empty($_SESSION['csrf_token'])) {
 
 // 5. Maintenance Mode Check
 if (\App\Core\Config::get('app.maintenance', false)) {
-    http_response_code(503);
-    $controller = new \App\Controllers\BaseController();
-    $controller->setLayout('main');
-    echo $controller->render('public/maintenance', ['title' => 'Service Under Maintenance']);
-    exit;
+    $isAdmin = isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'admin';
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    
+    // Allow admin pages, asset loads, and login screens to remain accessible
+    $isBypassRoute = (
+        strpos($requestUri, '/admin') !== false ||
+        strpos($requestUri, '/login') !== false ||
+        strpos($requestUri, '/assets') !== false ||
+        strpos($requestUri, '/css') !== false
+    );
+    
+    if (!$isAdmin && !$isBypassRoute) {
+        http_response_code(503);
+        $controller = new \App\Controllers\BaseController();
+        $controller->setLayout('main');
+        echo $controller->render('public/maintenance', ['title' => 'Service Under Maintenance']);
+        exit;
+    }
 }
 
 return [

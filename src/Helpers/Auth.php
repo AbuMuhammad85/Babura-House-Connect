@@ -2,41 +2,84 @@
 
 namespace App\Helpers;
 
+use App\Repositories\UserRepository;
+
 class Auth
 {
+    protected static ?array $cachedUser = null;
+
+    /**
+     * Set up session variables and regenerate session ID to prevent fixation.
+     */
     public static function login(array $user): void
     {
-        $_SESSION['user'] = $user;
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        session_regenerate_id(true);
+        $_SESSION['user_id'] = $user['id'];
+        self::$cachedUser = $user;
     }
 
+    /**
+     * Terminate user session and clear variables.
+     */
     public static function logout(): void
     {
-        if (isset($_SESSION['user'])) {
-            unset($_SESSION['user']);
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
+
+        if (isset($_SESSION['user_id'])) {
+            unset($_SESSION['user_id']);
+        }
+
+        self::$cachedUser = null;
         session_unset();
         session_destroy();
     }
 
+    /**
+     * Check if a user ID is present in the session.
+     */
     public static function check(): bool
     {
-        return isset($_SESSION['user']) && is_array($_SESSION['user']);
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        return isset($_SESSION['user_id']);
     }
 
+    /**
+     * Retrieve current user details from the database.
+     */
     public static function user($key = null)
     {
-        $user = $_SESSION['user'] ?? null;
-        if ($user === null) {
+        if (!self::check()) {
+            return null;
+        }
+
+        if (self::$cachedUser === null) {
+            $repo = new UserRepository();
+            self::$cachedUser = $repo->findById((int)$_SESSION['user_id']);
+        }
+
+        if (self::$cachedUser === null) {
             return null;
         }
 
         if ($key !== null) {
-            return $user[$key] ?? null;
+            return self::$cachedUser[$key] ?? null;
         }
 
-        return $user;
+        return self::$cachedUser;
     }
 
+    /**
+     * Retrieve the authenticated user's role from the database.
+     */
     public static function role(): ?string
     {
         return self::user('role');

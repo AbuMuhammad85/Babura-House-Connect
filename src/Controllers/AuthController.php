@@ -7,6 +7,9 @@ use App\Core\Response;
 use App\Helpers\Auth;
 use App\Helpers\Redirect;
 use App\Helpers\Flash;
+use App\Helpers\Validation;
+use App\Repositories\UserRepository;
+use App\Core\Database;
 
 class AuthController extends BaseController
 {
@@ -22,26 +25,57 @@ class AuthController extends BaseController
     {
         $body = $request->getBody();
         $email = $body['email'] ?? '';
+        $password = $body['password'] ?? '';
         $role = $body['role'] ?? 'tenant';
 
-        // Mock User profiles session
-        $user = [
-            'email' => $email,
-            'role' => $role,
-        ];
+        $repo = new UserRepository();
+        $user = $repo->findByEmail($email);
 
-        if ($role === 'landlord') {
-            $user['name'] = 'Alhaji Ibrahim Babura';
-            $user['verified'] = true; // Set to true to satisfy VerifiedLandlordMiddleware
-        } elseif ($role === 'admin') {
-            $user['name'] = 'System Admin';
-        } else {
-            $user['name'] = 'Garba Danladi';
+        if (!$user || $user['role'] !== $role || !password_verify($password, $user['password_hash'])) {
+            // Log failed login event
+            $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+            Database::query(
+                "INSERT INTO activity_logs (user_id, action, description, ip_address, user_agent) 
+                 VALUES (:user_id, :action, :description, :ip_address, :user_agent)",
+                [
+                    'user_id' => $user ? $user['id'] : null,
+                    'action' => 'LOGIN_FAILED',
+                    'description' => "Failed {$role} portal login attempt for " . $email,
+                    'ip_address' => $ip,
+                    'user_agent' => $ua
+                ]
+            );
+
+            Flash::set('error', 'Invalid credentials.');
+            return Redirect::to('/login');
         }
 
-        Auth::login($user);
-        Flash::set('success', 'Logged in successfully as ' . $user['name'] . '.');
+        if ($user['status'] !== 'active') {
+            Flash::set('error', 'Your account is currently ' . $user['status'] . '.');
+            return Redirect::to('/login');
+        }
 
+        // Establish secure authenticated session
+        Auth::login($user);
+        $repo->updateLastLogin($user['id']);
+
+        // Log successful login event
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        Database::query(
+            "INSERT INTO activity_logs (user_id, action, description, ip_address, user_agent) 
+             VALUES (:user_id, :action, :description, :ip_address, :user_agent)",
+            [
+                'user_id' => $user['id'],
+                'action' => 'LOGIN_SUCCESS',
+                'description' => "Successful {$role} portal login for " . $email,
+                'ip_address' => $ip,
+                'user_agent' => $ua
+            ]
+        );
+
+        Flash::set('success', 'Welcome back, ' . $user['full_name'] . '!');
         return Redirect::to("/{$role}/dashboard");
     }
 
@@ -55,8 +89,102 @@ class AuthController extends BaseController
 
     public function handleRegister(Request $request, Response $response)
     {
-        Flash::set('success', 'Registration submitted. Please log in.');
-        return Redirect::to('/login');
+        $body = $request->getBody();
+        $name = $body['name'] ?? '';
+        $email = $body['email'] ?? '';
+        $phone = $body['phone'] ?? '';
+        $role = $body['role'] ?? 'tenant';
+        $password = $body['password'] ?? '';
+        $confirmPassword = $body['confirm_password'] ?? '';
+
+        // Server-side validation checks
+        $val = new Validation();
+        $rules = [
+            'name' => 'required|min:3|max:150',
+            'email' => 'required|email|max:191',
+            'phone' => 'required|min:7|max:30',
+            'password' => 'required|min:6',
+        ];
+
+        if (!$val->validate($body, $rules)) {
+            $errors = array_merge(...array_values($val->errors()));
+            Flash::set('error', implode(' ', $errors));
+            return Redirect::to('/register');
+        }
+
+        if ($password !== $confirmPassword) {
+            Flash::set('error', 'Password confirmation does not match.');
+            return Redirect::to('/register');
+        }
+
+        // Validate uniqueness of email and phone
+        $repo = new UserRepository();
+        if ($repo->findByEmail($email)) {
+            Flash::set('error', 'This email address is already registered.');
+            return Redirect::to('/register');
+        }
+        if ($repo->findByPhone($phone)) {
+            Flash::set('error', 'This phone number is already registered.');
+            return Redirect::to('/register');
+        }
+
+        // Whitelist role values to block any admin escalation
+        if (!in_array($role, ['tenant', 'landlord'])) {
+            Flash::set('error', 'Invalid role selection.');
+            return Redirect::to('/register');
+        }
+
+        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+
+        // Transaction block for creating user and profile
+        Database::beginTransaction();
+        try {
+            $userId = $repo->create([
+                'role' => $role,
+                'full_name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+                'password_hash' => $passwordHash,
+                'status' => 'active'
+            ]);
+
+            if ($role === 'tenant') {
+                $repo->createTenantProfile($userId);
+            } else {
+                $repo->createLandlordProfile($userId, [
+                    'verification_status' => 'pending'
+                ]);
+            }
+
+            Database::commit();
+
+            // Log activity
+            $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+            Database::query(
+                "INSERT INTO activity_logs (user_id, action, description, ip_address, user_agent) 
+                 VALUES (:user_id, :action, :description, :ip_address, :user_agent)",
+                [
+                    'user_id' => $userId,
+                    'action' => 'REGISTRATION',
+                    'description' => "New {$role} portal registration created for " . $email,
+                    'ip_address' => $ip,
+                    'user_agent' => $ua
+                ]
+            );
+
+            // Log in the user immediately
+            $user = $repo->findById($userId);
+            Auth::login($user);
+
+            Flash::set('success', 'Registration successful! Welcome to your dashboard portal.');
+            return Redirect::to("/{$role}/dashboard");
+
+        } catch (\Exception $e) {
+            Database::rollBack();
+            Flash::set('error', 'Account registration failed. Please try again.');
+            return Redirect::to('/register');
+        }
     }
 
     public function forgotPassword(Request $request, Response $response)
@@ -77,7 +205,25 @@ class AuthController extends BaseController
 
     public function logout(Request $request, Response $response)
     {
+        $userId = Auth::user('id');
+        if ($userId) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+            Database::query(
+                "INSERT INTO activity_logs (user_id, action, description, ip_address, user_agent) 
+                 VALUES (:user_id, :action, :description, :ip_address, :user_agent)",
+                [
+                    'user_id' => $userId,
+                    'action' => 'LOGOUT',
+                    'description' => "User logged out of session.",
+                    'ip_address' => $ip,
+                    'user_agent' => $ua
+                ]
+            );
+        }
+
         Auth::logout();
+        Flash::set('success', 'You have been successfully logged out.');
         return Redirect::to('/');
     }
 }

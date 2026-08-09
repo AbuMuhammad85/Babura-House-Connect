@@ -11,7 +11,15 @@
                 <p class="text-xs text-text-muted">Enter administrative credentials below to authenticate.</p>
             </div>
 
+            <?php if (\App\Helpers\Flash::has('error')): ?>
+                <?php component('alerts', ['type' => 'error', 'message' => \App\Helpers\Flash::get('error')]); ?>
+            <?php endif; ?>
+            <?php if (\App\Helpers\Flash::has('success')): ?>
+                <?php component('alerts', ['type' => 'success', 'message' => \App\Helpers\Flash::get('success')]); ?>
+            <?php endif; ?>
+
             <form action="<?= url('/admin/login') ?>" method="POST" class="space-y-4">
+                <?= \App\Helpers\CSRF::field() ?>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Admin Email</label>
                     <div class="relative">

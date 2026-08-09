@@ -52,7 +52,7 @@
             data: {
                 labels: ['Tenants', 'Standard Landlords', 'Premium Landlords'],
                 datasets: [{
-                    data: [1240, 120, 36],
+                    data: [<?= (int)$tenantCount ?>, <?= (int)$standardLandlordCount ?>, <?= (int)$premiumLandlordCount ?>],
                     backgroundColor: ['#3B82F6', '#F59E0B', '#16A34A']
                 }]
             },

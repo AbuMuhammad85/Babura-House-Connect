@@ -1,12 +1,24 @@
+<?php
+use App\Helpers\Flash;
+?>
+
 <div class="space-y-6 max-w-4xl">
     <div>
         <h2 class="text-xl font-bold text-slate-800">Add New Rental Property</h2>
         <p class="text-xs text-text-muted mt-1">Submit your property specifications. It will be verified before publishing online.</p>
     </div>
 
+    <?php if (Flash::has('error')): ?>
+        <?php component('alerts', ['type' => 'error', 'message' => Flash::get('error')]); ?>
+    <?php endif; ?>
+    <?php if (Flash::has('success')): ?>
+        <?php component('alerts', ['type' => 'success', 'message' => Flash::get('success')]); ?>
+    <?php endif; ?>
+
     <!-- Add Listing Form -->
     <div class="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm">
         <form action="<?= url('/landlord/add-house') ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <?= \App\Helpers\CSRF::field() ?>
             
             <!-- Basic Details -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -17,12 +29,10 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Location Area (Babura)</label>
-                    <select name="location" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
-                        <option>Kofar Gabas</option>
-                        <option>Sabo Gari</option>
-                        <option>GRA</option>
-                        <option>Tashar Dan-Baba</option>
-                        <option>Kofar Arewa</option>
+                    <select name="area_id" required class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                        <?php foreach ($areas as $area): ?>
+                            <option value="<?= $area['id'] ?>"><?= htmlspecialchars($area['name']) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
@@ -32,7 +42,7 @@
                 </div>
             </div>
 
-            <!-- Price and Dimensions -->
+            <!-- Price and specs -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Rent Price (₦)</label>
@@ -50,10 +60,17 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Property Type</label>
                     <select name="type" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
-                        <option>Flat</option>
-                        <option>Bungalow</option>
-                        <option>Self-Contain</option>
-                        <option>Duplex</option>
+                        <option value="single_room">Single Room</option>
+                        <option value="room_and_parlor">Room & Parlor</option>
+                        <option value="two_bedroom">Two Bedroom</option>
+                        <option value="three_bedroom">Three Bedroom</option>
+                        <option value="four_bedroom">Four Bedroom</option>
+                        <option value="self_contain">Self-Contain</option>
+                        <option value="flat">Flat</option>
+                        <option value="duplex">Duplex</option>
+                        <option value="compound_house">Compound House</option>
+                        <option value="shop">Shop</option>
+                        <option value="other">Other</option>
                     </select>
                 </div>
 
@@ -63,8 +80,8 @@
                 </div>
             </div>
 
-            <!-- Rooms specs -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <!-- Rooms specs and files uploads -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Bedrooms count</label>
                     <input type="number" name="beds" required placeholder="3" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
@@ -75,9 +92,14 @@
                     <input type="number" name="baths" required placeholder="2" class="w-full px-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
                 </div>
 
-                <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Property Images</label>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Property Images (Max 5)</label>
                     <input type="file" multiple name="images[]" required class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Property Video (Optional)</label>
+                    <input type="file" name="video" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
                 </div>
             </div>
 

@@ -7,6 +7,7 @@ use App\Core\Response;
 use App\Helpers\Auth;
 use App\Helpers\Redirect;
 use App\Helpers\Flash;
+use App\Core\Database;
 
 class VerifiedLandlordMiddleware implements MiddlewareInterface
 {
@@ -19,9 +20,13 @@ class VerifiedLandlordMiddleware implements MiddlewareInterface
             exit;
         }
 
-        // Mock check verified field inside the current user details
-        $user = Auth::user();
-        if (empty($user['verified'])) {
+        $userId = Auth::user('id');
+        $profile = Database::fetch(
+            "SELECT verification_status FROM landlord_profiles WHERE user_id = :user_id",
+            ['user_id' => $userId]
+        );
+
+        if (!$profile || $profile['verification_status'] !== 'approved') {
             Flash::set('warning', 'You must verify your identity and property ownership before publishing listings.');
             return Redirect::to('/landlord/verification');
         }

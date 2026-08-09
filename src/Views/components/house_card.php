@@ -10,15 +10,35 @@ $size = $size ?? 120;
 $image = $image ?? '/assets/images/house1.jpg';
 $type = $type ?? 'Flat';
 $verified = $verified ?? true;
+$favorited = $favorited ?? null;
+
+if ($favorited === null) {
+    $favorited = false;
+    if (\App\Helpers\Auth::check() && \App\Helpers\Auth::role() === 'tenant') {
+        $existing = \App\Core\Database::fetch(
+            "SELECT id FROM favorites WHERE tenant_id = :tenant_id AND house_id = :house_id",
+            ['tenant_id' => \App\Helpers\Auth::user('id'), 'house_id' => $id]
+        );
+        $favorited = ($existing !== false);
+    }
+}
 ?>
 
 <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl hover:border-slate-200 transition-all duration-300 group flex flex-col h-full" data-aos="fade-up">
     <!-- Image Header -->
     <div class="relative overflow-hidden aspect-video bg-slate-100 flex items-center justify-center">
-        <!-- SVG Placeholder -->
-        <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-tr from-slate-200 to-slate-100">
-            <i class="fa-regular fa-image text-slate-400 text-3xl"></i>
-        </div>
+        <?php if (!empty($image) && $image !== '/assets/images/house1.jpg' && $image !== '/assets/images/house2.jpg' && $image !== '/assets/images/house3.jpg' && $image !== '/assets/images/house4.jpg' && $image !== '/assets/images/house5.jpg' && $image !== '/assets/images/house6.jpg'): ?>
+            <img src="<?= url($image) ?>" alt="<?= htmlspecialchars($title) ?>" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+        <?php else: ?>
+            <!-- SVG Placeholder / Static asset fallback -->
+            <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-tr from-slate-200 to-slate-100">
+                <?php if (strpos($image, '/assets/') === 0): ?>
+                    <img src="<?= url($image) ?>" alt="<?= htmlspecialchars($title) ?>" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <?php else: ?>
+                    <i class="fa-regular fa-image text-slate-400 text-3xl"></i>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
         
         <!-- Badges -->
         <div class="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
@@ -33,9 +53,19 @@ $verified = $verified ?? true;
         </div>
         
         <!-- Favorite Button -->
-        <button class="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-md text-slate-600 hover:text-red-500 hover:bg-white shadow-sm hover:scale-110 transition-all" aria-label="Add to favorites">
-            <i class="fa-regular fa-heart"></i>
-        </button>
+        <?php if (\App\Helpers\Auth::check() && \App\Helpers\Auth::role() === 'tenant'): ?>
+            <form action="<?= url($favorited ? '/tenant/favorites/remove' : '/tenant/favorites/add') ?>" method="POST" class="absolute top-3 right-3 z-10">
+                <?= \App\Helpers\CSRF::field() ?>
+                <input type="hidden" name="house_id" value="<?= $id ?>">
+                <button type="submit" class="p-2 rounded-full bg-white/80 backdrop-blur-md hover:bg-white shadow-sm hover:scale-110 transition-all <?= $favorited ? 'text-red-500' : 'text-slate-600' ?>" aria-label="<?= $favorited ? 'Remove from favorites' : 'Add to favorites' ?>">
+                    <i class="fa-<?= $favorited ? 'solid' : 'regular' ?> fa-heart"></i>
+                </button>
+            </form>
+        <?php else: ?>
+            <button class="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-md text-slate-600 hover:text-red-500 hover:bg-white shadow-sm hover:scale-110 transition-all" aria-label="Add to favorites" onclick="window.location.href='<?= url('/login') ?>'">
+                <i class="fa-regular fa-heart"></i>
+            </button>
+        <?php endif; ?>
     </div>
 
     <!-- Details Body -->

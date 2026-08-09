@@ -7,6 +7,7 @@ class Router
     protected array $routes = [];
     protected array $groupStack = [];
     protected array $namedRoutes = [];
+    protected array $csrfExclusions = [];
     public Request $request;
     public Response $response;
 
@@ -73,13 +74,36 @@ class Router
         $path = $this->request->getPath();
         $method = $this->request->getMethod();
         
+        if ($method === 'post' && !in_array($path, $this->csrfExclusions)) {
+            if (!\App\Helpers\CSRF::validate($this->request)) {
+                $this->response->setStatusCode(403);
+                $controller = new \App\Controllers\BaseController();
+                echo $controller->render('public/403', [
+                    'title' => 'Access Denied',
+                    'message' => 'CSRF verification failed. Please refresh the page and try again.'
+                ]);
+                exit;
+            }
+        }
+        
         $matchedRoute = null;
         $params = [];
 
+        // First pass: try to match static routes (those without parameters)
         foreach ($this->routes[$method] ?? [] as $route) {
-            if ($route->matches($path, $params)) {
+            if (empty($route->paramNames) && $route->matches($path, $params)) {
                 $matchedRoute = $route;
                 break;
+            }
+        }
+
+        // Second pass: if no static route matched, try dynamic routes (those with parameters)
+        if (!$matchedRoute) {
+            foreach ($this->routes[$method] ?? [] as $route) {
+                if (!empty($route->paramNames) && $route->matches($path, $params)) {
+                    $matchedRoute = $route;
+                    break;
+                }
             }
         }
 

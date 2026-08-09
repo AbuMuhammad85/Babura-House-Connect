@@ -12,7 +12,15 @@
                 <p class="text-xs text-text-muted">Enter details below to access your Babura House portal.</p>
             </div>
 
+            <?php if (\App\Helpers\Flash::has('error')): ?>
+                <?php component('alerts', ['type' => 'error', 'message' => \App\Helpers\Flash::get('error')]); ?>
+            <?php endif; ?>
+            <?php if (\App\Helpers\Flash::has('success')): ?>
+                <?php component('alerts', ['type' => 'success', 'message' => \App\Helpers\Flash::get('success')]); ?>
+            <?php endif; ?>
+
             <form action="<?= url('/login') ?>" method="POST" class="space-y-4">
+                <?= \App\Helpers\CSRF::field() ?>
                 
                 <!-- Email Input -->
                 <div>

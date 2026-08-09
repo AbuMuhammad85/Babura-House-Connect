@@ -1,0 +1,8 @@
+{
+  "site_name": "Babura House Connect",
+  "support_email": "support@houseconnect.ng",
+  "maintenance_mode": false,
+  "smtp_host": "smtp.mailtrap.io",
+  "smtp_port": "2525",
+  "smtp_encryption": "TLS"
+}
