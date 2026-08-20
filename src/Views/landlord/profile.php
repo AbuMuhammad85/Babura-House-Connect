@@ -22,7 +22,16 @@ use App\Helpers\Flash;
                 <img src="<?= url($profile['profile_photo']) ?>" alt="Avatar" class="w-16 h-16 rounded-2xl object-cover border border-slate-100 shrink-0">
             <?php else: ?>
                 <span class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl uppercase shrink-0">
-                    <?= substr($profile['name'] ?? 'L', 0, 2) ?>
+                    <?php
+                    $words = preg_split('/\s+/', trim($profile['name'] ?? ''));
+                    $initials = '';
+                    foreach ($words as $word) {
+                        if (!empty($word)) {
+                            $initials .= mb_strtoupper(mb_substr($word, 0, 1));
+                        }
+                    }
+                    echo !empty($initials) ? mb_substr($initials, 0, 3) : 'L';
+                    ?>
                 </span>
             <?php endif; ?>
             <div>

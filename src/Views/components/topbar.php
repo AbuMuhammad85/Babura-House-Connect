@@ -1,15 +1,7 @@
 <?php
 $role = $role ?? 'tenant';
-$username = 'Garba Danladi';
-$userAvatar = '/assets/images/tenant_avatar.jpg';
-
-if ($role === 'landlord') {
-    $username = 'Alhaji Ibrahim Babura';
-    $userAvatar = '/assets/images/landlord_avatar.jpg';
-} elseif ($role === 'admin') {
-    $username = 'Admin System';
-    $userAvatar = '/assets/images/admin_avatar.jpg';
-}
+$username = \App\Helpers\Auth::user('full_name') ?? 'Guest User';
+$initials = \App\Helpers\Auth::initials();
 ?>
 
 <header class="flex items-center justify-between h-16 px-4 md:px-6 bg-white border-b border-slate-100 shadow-sm shrink-0">
@@ -64,7 +56,7 @@ if ($role === 'landlord') {
         <div class="relative" x-data="{ open: false }">
             <button @click="open = !open" class="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" aria-label="Profile menu">
                 <span class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm uppercase">
-                    <?= substr($username, 0, 2) ?>
+                    <?= $initials ?>
                 </span>
                 <span class="text-sm font-medium text-slate-700 hidden md:block"><?= $username ?></span>
                 <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 hidden md:block"></i>

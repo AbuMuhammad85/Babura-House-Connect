@@ -84,4 +84,20 @@ class Auth
     {
         return self::user('role');
     }
+
+    /**
+     * Generate avatar initials dynamically from the actual user's full_name (up to 3 characters).
+     */
+    public static function initials(): string
+    {
+        $name = self::user('full_name') ?? '';
+        $words = preg_split('/\s+/', trim($name));
+        $initials = '';
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $initials .= mb_strtoupper(mb_substr($word, 0, 1));
+            }
+        }
+        return !empty($initials) ? mb_substr($initials, 0, 3) : 'U';
+    }
 }
