@@ -28,11 +28,14 @@
                     </div>
                 </div>
 
-                <div>
+                <div x-data="{ showPassword: false }">
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                        <input type="password" name="password" required placeholder="••••••••" class="w-full pl-9 pr-3.5 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                        <input :type="showPassword ? 'text' : 'password'" name="password" required placeholder="••••••••" class="w-full pl-9 pr-10 py-2 text-xs border border-slate-200 focus:border-primary focus:outline-none rounded-lg text-slate-800 bg-white">
+                        <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-2 text-slate-400 hover:text-slate-600 focus:outline-none" aria-label="Toggle password visibility">
+                            <i class="fa-solid text-xs" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        </button>
                     </div>
                 </div>
 
